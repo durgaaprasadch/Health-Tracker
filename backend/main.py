@@ -219,13 +219,7 @@ async def ai_analyze(req: AIRequest):
                     "You are a senior public health analyst. Answer questions using the real-time disease data "
                     "provided. Be concise (under 120 words), data-driven, and clear. Plain text only — no markdown, "
                     "no bullet symbols, no headers. Two short paragraphs max."
-                ),
-                "safety_settings": [
-                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                ]
+                )
             }
         )
         
