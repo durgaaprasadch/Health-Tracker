@@ -63,11 +63,19 @@ export default function App() {
       setCountries(co)
       setLastUpdated(new Date())
     } catch (e) {
-      setError('Failed to load data — is the backend running on port 8000?')
+      console.error('Data load failed:', e)
+      if (e.code === 'ECONNABORTED') {
+        setError('Request timed out. The backend or public API is taking too long to respond.')
+      } else if (!e.response) {
+        setError('Cannot connect to backend. Is it running on port 8000?')
+      } else {
+        setError(`Failed to load data: ${e.response.data?.detail || e.message}`)
+      }
     } finally {
       setLoading(false)
     }
   }, [sortField])
+
 
   useEffect(() => { loadData() }, [])
 

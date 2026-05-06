@@ -2,7 +2,21 @@ import axios from 'axios'
 
 // Use the Vercel environment variable, or fallback to empty string for local proxy
 const baseURL = import.meta.env.VITE_API_URL || ''
-const api = axios.create({ baseURL, timeout: 15000 })
+const api = axios.create({ baseURL, timeout: 20000 })
+
+// Add a request/response interceptor for better debugging
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('[API Error]', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+)
 
 export const fetchGlobal       = ()        => api.get('/api/global').then(r => r.data)
 export const fetchContinents   = ()        => api.get('/api/continents').then(r => r.data)
@@ -19,3 +33,4 @@ export const askAI = ({ question, globalStats, continentStats, topCountries }) =
     continent_stats: continentStats || null,
     top_countries:   topCountries  || null,
   }).then(r => r.data)
+

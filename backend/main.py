@@ -16,10 +16,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from contextlib import asynccontextmanager
+
+# Use a persistent client for better performance and to avoid socket exhaustion
+http_client = httpx.AsyncClient(timeout=15.0)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: client is already created above
+    yield
+    # Shutdown: clean up client
+    await http_client.aclose()
+
 app = FastAPI(
     title="Public Health Tracker API",
     description="Real-time global disease surveillance powered by disease.sh and Claude AI",
     version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -75,12 +88,15 @@ async def get_global_stats():
     cached = get_cached("global")
     if cached:
         return cached
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/all")
+    try:
+        r = await http_client.get(f"{BASE_URL}/all")
         r.raise_for_status()
         data = r.json()
-    set_cached("global", data)
-    return data
+        set_cached("global", data)
+        return data
+    except Exception as e:
+        print(f"Error fetching global stats: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 @app.get("/api/continents", tags=["COVID-19"])
@@ -89,12 +105,15 @@ async def get_continents():
     cached = get_cached("continents")
     if cached:
         return cached
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/continents")
+    try:
+        r = await http_client.get(f"{BASE_URL}/continents")
         r.raise_for_status()
         data = r.json()
-    set_cached("continents", data)
-    return data
+        set_cached("continents", data)
+        return data
+    except Exception as e:
+        print(f"Error fetching continents: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 @app.get("/api/countries", tags=["COVID-19"])
@@ -104,12 +123,15 @@ async def get_countries(sort: str = Query("cases", enum=["cases", "deaths", "rec
     cached = get_cached(key)
     if cached:
         return cached
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/countries", params={"sort": sort})
+    try:
+        r = await http_client.get(f"{BASE_URL}/countries", params={"sort": sort})
         r.raise_for_status()
         data = r.json()
-    set_cached(key, data)
-    return data
+        set_cached(key, data)
+        return data
+    except Exception as e:
+        print(f"Error fetching countries: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 @app.get("/api/country/{name}", tags=["COVID-19"])
@@ -119,45 +141,63 @@ async def get_country(name: str):
     cached = get_cached(key)
     if cached:
         return cached
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/countries/{name}")
+    try:
+        r = await http_client.get(f"{BASE_URL}/countries/{name}")
         if r.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Country '{name}' not found.")
         r.raise_for_status()
         data = r.json()
-    set_cached(key, data)
-    return data
+        set_cached(key, data)
+        return data
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching country detail: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 @app.get("/api/historical/{name}", tags=["Historical"])
 async def get_historical(name: str, days: int = Query(30, ge=1, le=365)):
     """Historical COVID-19 timeline for a country (cases, deaths, recovered)."""
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/historical/{name}", params={"lastdays": days})
+    try:
+        r = await http_client.get(f"{BASE_URL}/historical/{name}", params={"lastdays": days})
         if r.status_code == 404:
             raise HTTPException(status_code=404, detail=f"No historical data for '{name}'.")
         r.raise_for_status()
         return r.json()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching historical data: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 @app.get("/api/vaccines", tags=["Vaccines"])
 async def get_vaccine_global():
     """Global vaccine coverage data."""
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/vaccine/coverage", params={"lastdays": 30})
+    try:
+        r = await http_client.get(f"{BASE_URL}/vaccine/coverage", params={"lastdays": 30})
         r.raise_for_status()
         return r.json()
+    except Exception as e:
+        print(f"Error fetching vaccine data: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 @app.get("/api/vaccines/{country}", tags=["Vaccines"])
 async def get_vaccine_country(country: str):
     """Vaccine coverage for a specific country."""
-    async with httpx.AsyncClient(timeout=10) as client_http:
-        r = await client_http.get(f"{BASE_URL}/vaccine/coverage/countries/{country}", params={"lastdays": 30})
+    try:
+        r = await http_client.get(f"{BASE_URL}/vaccine/coverage/countries/{country}", params={"lastdays": 30})
         if r.status_code == 404:
             raise HTTPException(status_code=404, detail=f"No vaccine data for '{country}'.")
         r.raise_for_status()
         return r.json()
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching country vaccine data: {e}")
+        raise HTTPException(status_code=502, detail="Upstream data source unreachable")
 
 
 # ─── AI Analyst Route ──────────────────────────────────────────────────────
