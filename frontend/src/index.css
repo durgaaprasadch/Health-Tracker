@@ -1,0 +1,109 @@
+/* ── Public Health Tracker — Global Styles ── */
+
+:root {
+  --font-display: 'Syne', sans-serif;
+  --font-data: 'DM Mono', monospace;
+
+  /* Surfaces */
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --surface-2: #eeecea;
+  --surface-3: #e5e3e0;
+
+  /* Borders */
+  --border: rgba(0,0,0,0.09);
+  --border-md: rgba(0,0,0,0.15);
+
+  /* Text */
+  --text-primary: #0e0e0d;
+  --text-secondary: #5a5955;
+  --text-tertiary: #95948f;
+
+  /* Semantic */
+  --red:        #E24B4A;
+  --red-bg:     #FCEBEB;
+  --red-text:   #A32D2D;
+
+  --amber:      #EF9F27;
+  --amber-bg:   #FAEEDA;
+  --amber-text: #854F0B;
+
+  --green:      #639922;
+  --green-bg:   #EAF3DE;
+  --green-text: #3B6D11;
+
+  --blue:       #378ADD;
+  --blue-bg:    #E6F1FB;
+  --blue-text:  #185FA5;
+
+  /* Radius */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131312;
+    --surface: #1d1d1b;
+    --surface-2: #252523;
+    --surface-3: #2e2e2b;
+    --border: rgba(255,255,255,0.08);
+    --border-md: rgba(255,255,255,0.15);
+    --text-primary: #f0efeb;
+    --text-secondary: #b0afa8;
+    --text-tertiary: #7a7972;
+    --red-bg:     #3a1111;
+    --red-text:   #f09595;
+    --amber-bg:   #3d2a08;
+    --amber-text: #fac775;
+    --green-bg:   #1a2f08;
+    --green-text: #97c459;
+    --blue-bg:    #07253f;
+    --blue-text:  #85b7eb;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-display);
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
+
+/* Animations */
+@keyframes pulse-ring {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0; transform: scale(2); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes blink {
+  0%,100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+@keyframes shimmer {
+  0%,100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+.fade-up { animation: fade-up 0.4s ease both; }
+.fade-up-1 { animation-delay: 0.05s; }
+.fade-up-2 { animation-delay: 0.10s; }
+.fade-up-3 { animation-delay: 0.15s; }
+.fade-up-4 { animation-delay: 0.20s; }
